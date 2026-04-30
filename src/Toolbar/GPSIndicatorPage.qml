@@ -113,6 +113,18 @@ ToolIndicatorPage {
                 }
 
                 LabelledLabel {
+                    label:      qsTr("Latitude")
+                    labelText:  activeVehicle ? activeVehicle.gps.lat.valueString : valueNA
+                    visible:    activeVehicle && !isNaN(activeVehicle.gps.lat.value)
+                }
+
+                LabelledLabel {
+                    label:      qsTr("Longitude")
+                    labelText:  activeVehicle ? activeVehicle.gps.lon.valueString : valueNA
+                    visible:    activeVehicle && !isNaN(activeVehicle.gps.lon.value)
+                }
+
+                LabelledLabel {
                     label: qsTr("GPS Error")
                     labelText: errorText()
                     visible: activeVehicle && activeVehicle.gps.systemErrors.value > 0
