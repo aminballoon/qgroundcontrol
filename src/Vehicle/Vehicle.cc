@@ -167,6 +167,8 @@ Vehicle::Vehicle(LinkInterface*             link,
     connect(&_sendMultipleTimer, &QTimer::timeout, this, &Vehicle::_sendMessageMultipleNext);
 
     connect(&_orbitTelemetryTimer, &QTimer::timeout, this, &Vehicle::_orbitTelemetryTimeout);
+    connect(&_landingTargetTelemetryTimer, &QTimer::timeout, this, &Vehicle::_landingTargetTelemetryTimeout);
+    _landingTargetTelemetryTimer.setSingleShot(true);
 
     // Start csv logger
     connect(&_csvLogTimer, &QTimer::timeout, this, &Vehicle::_writeCsvLine);
@@ -648,6 +650,13 @@ void Vehicle::_mavlinkMessageReceived(LinkInterface* link, mavlink_message_t mes
     case MAVLINK_MSG_ID_GPS_RAW_INT:
         _handleGpsRawInt(message);
         break;
+    case MAVLINK_MSG_ID_LANDING_TARGET:
+        if (!_landingTargetAvailable) {
+            _landingTargetAvailable = true;
+            emit landingTargetAvailableChanged();
+        }
+        _landingTargetTelemetryTimer.start(_landingTargetTelemetryTimeoutMsecs);
+        break;
     case MAVLINK_MSG_ID_GLOBAL_POSITION_INT:
         _handleGlobalPositionInt(message);
         break;
@@ -806,6 +815,14 @@ void Vehicle::_orbitTelemetryTimeout()
 {
     _orbitActive = false;
     emit orbitActiveChanged(false);
+}
+
+void Vehicle::_landingTargetTelemetryTimeout()
+{
+    if (_landingTargetAvailable) {
+        _landingTargetAvailable = false;
+        emit landingTargetAvailableChanged();
+    }
 }
 
 void Vehicle::_handleCameraImageCaptured(const mavlink_message_t& message)

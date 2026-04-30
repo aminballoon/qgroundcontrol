@@ -269,6 +269,9 @@ public:
     Q_PROPERTY(QString  vehicleUIDStr               READ vehicleUIDStr              NOTIFY vehicleUIDChanged)
 
     Q_PROPERTY(VehicleSigningController* signingController READ signingController CONSTANT)
+    Q_PROPERTY(bool     mavlinkSigning              READ mavlinkSigning             NOTIFY mavlinkSigningChanged)
+    Q_PROPERTY(QString  mavlinkSigningKeyName       READ mavlinkSigningKeyName      NOTIFY mavlinkSigningChanged)
+    Q_PROPERTY(bool     landingTargetAvailable      READ landingTargetAvailable     NOTIFY landingTargetAvailableChanged)
 
     /// Resets link status counters
     Q_INVOKABLE void resetCounters  ();
@@ -537,6 +540,9 @@ public:
     Actuators*      actuators                   () const { return _actuators; }
     VehicleSigningController* signingController() { return _signingController; }
     const VehicleSigningController* signingController() const { return _signingController; }
+    bool            mavlinkSigning          () const { return _mavlinkSigning; }
+    QString         mavlinkSigningKeyName   () const { return _mavlinkSigningKeyName; }
+    bool            landingTargetAvailable  () const { return _landingTargetAvailable; }
 
     void startCalibration   (QGCMAVLink::CalibrationType calType);
     void stopCalibration    (bool showError);
@@ -810,6 +816,8 @@ signals:
     void mavlinkSerialControl           (uint8_t device, uint8_t flags, uint16_t timeout, uint32_t baudrate, QByteArray data);
 
     void mavlinkStatusChanged           ();
+    void mavlinkSigningChanged          ();
+    void landingTargetAvailableChanged  ();
 
     void isROIEnabledChanged            ();
     void roiCoordChanged                (const QGeoCoordinate& centerCoord);
@@ -843,6 +851,7 @@ private slots:
     void _sendQGCTimeToVehicle              ();
     void _mavlinkMessageStatus              (int uasId, uint64_t totalSent, uint64_t totalReceived, uint64_t totalLoss, float lossPercent);
     void _orbitTelemetryTimeout             ();
+    void _landingTargetTelemetryTimeout     ();
     void _updateFlightTime                  ();
     void _gotProgressUpdate                 (float progressValue);
 
@@ -947,6 +956,10 @@ private:
     bool            _allSensorsHealthy                      = true;
     VehicleSigningController* _signingController            = nullptr;
     std::atomic<bool> _joystickAuxRcOverrideActive           = false;
+    bool            _mavlinkSigning                         = false;
+    QString         _mavlinkSigningKeyName;
+    bool            _landingTargetAvailable                 = false;
+    QTimer          _landingTargetTelemetryTimer;
 
     std::unique_ptr<SysStatusSensorInfo> _sysStatusSensorInfo;
 
@@ -1035,6 +1048,7 @@ private:
     std::unique_ptr<QGCMapCircle> _orbitMapCircle;
     QTimer          _orbitTelemetryTimer;
     static const int _orbitTelemetryTimeoutMsecs = 3000; // No telemetry for this amount and orbit will go inactive
+    static const int _landingTargetTelemetryTimeoutMsecs = 2000;
 
     std::unique_ptr<MAVLinkStreamConfig> _mavlinkStreamConfig;
 
