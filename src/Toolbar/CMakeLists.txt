@@ -15,6 +15,7 @@ qt_add_qml_module(ToolbarModule
         FlyViewToolBarIndicators.qml
         GCSControlIndicator.qml
         GimbalIndicator.qml
+        GPS2IndicatorPage.qml
         GPSIndicator.qml
         GPSIndicatorPage.qml
         GPSResilienceIndicator.qml
@@ -32,7 +33,9 @@ qt_add_qml_module(ToolbarModule
         SelectViewDropdown.qml
         SignalStrength.qml
         TelemetryRSSIIndicator.qml
+        VehicleGPS2Indicator.qml
         VehicleGPSIndicator.qml
+        VehiclePrecisionLandIndicator.qml
         VehicleMessageList.qml
     NO_PLUGIN
 )
@@ -72,6 +75,7 @@ qt_add_resources(${CMAKE_PROJECT_NAME} toolbar_qmlimages
         "${CMAKE_SOURCE_DIR}/src/Toolbar/Images/Hamburger.svg"
         "${CMAKE_SOURCE_DIR}/src/Toolbar/Images/HamburgerThin.svg"
         "${CMAKE_SOURCE_DIR}/src/Toolbar/Images/Joystick.png"
+        "${CMAKE_SOURCE_DIR}/src/Toolbar/Images/LandingTarget.svg"
         "${CMAKE_SOURCE_DIR}/src/Toolbar/Images/Megaphone.svg"
         "${CMAKE_SOURCE_DIR}/src/Toolbar/Images/PaperPlane.svg"
         "${CMAKE_SOURCE_DIR}/src/Toolbar/Images/Plan.svg"
