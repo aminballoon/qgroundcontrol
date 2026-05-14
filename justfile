@@ -131,3 +131,61 @@ check-deps:
 distclean:
     ./tools/clean.py --all
     rm -rf node_modules
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Android
+# ─────────────────────────────────────────────────────────────────────────────
+
+android_build_dir := env_var_or_default("ANDROID_BUILD_DIR", "build_android")
+android_keystore  := env_var_or_default("QT_ANDROID_KEYSTORE_PATH", "/tmp/qgc-debug.keystore")
+android_alias     := env_var_or_default("QT_ANDROID_KEYSTORE_ALIAS", "androiddebugkey")
+android_store_pass := env_var_or_default("QT_ANDROID_KEYSTORE_STORE_PASS", "android")
+android_key_pass  := env_var_or_default("QT_ANDROID_KEYSTORE_KEY_PASS", "android")
+
+# Create a local debug keystore for APK signing (one-time setup)
+android-keystore:
+    @if [ -f "{{android_keystore}}" ]; then \
+        echo "Keystore already exists at {{android_keystore}}"; \
+    else \
+        keytool -genkey -v \
+          -keystore "{{android_keystore}}" \
+          -storepass "{{android_store_pass}}" \
+          -alias "{{android_alias}}" \
+          -keypass "{{android_key_pass}}" \
+          -keyalg RSA -keysize 2048 -validity 10000 \
+          -dname "CN=Android Debug,O=Android,C=US" && \
+        echo "Debug keystore created at {{android_keystore}}"; \
+    fi
+
+# Sign the unsigned APK produced by the Android build
+android-sign: android-keystore
+    #!/usr/bin/env bash
+    set -euo pipefail
+    UNSIGNED=$(find "{{android_build_dir}}" -name "*-unsigned.apk" | head -1)
+    if [ -z "$UNSIGNED" ]; then
+        echo "No unsigned APK found under {{android_build_dir}}. Run the Android build first." >&2
+        exit 1
+    fi
+    SIGNED="${UNSIGNED/-unsigned/-signed}"
+    cp "$UNSIGNED" "$SIGNED"
+    jarsigner -sigalg SHA256withRSA -digestalg SHA-256 \
+        -keystore "{{android_keystore}}" \
+        -storepass "{{android_store_pass}}" \
+        -keypass "{{android_key_pass}}" \
+        "$SIGNED" "{{android_alias}}"
+    jarsigner -verify "$SIGNED" | grep -E "jar verified|ERROR"
+    echo ""
+    echo "Signed APK: $SIGNED"
+    echo ""
+    echo "Install with:  adb install \"$SIGNED\""
+
+# Install signed APK onto a connected device via adb
+android-install: android-sign
+    #!/usr/bin/env bash
+    set -euo pipefail
+    SIGNED=$(find "{{android_build_dir}}" -name "*-signed.apk" | head -1)
+    if [ -z "$SIGNED" ]; then
+        echo "No signed APK found. Run 'just android-sign' first." >&2
+        exit 1
+    fi
+    adb install -r "$SIGNED"
