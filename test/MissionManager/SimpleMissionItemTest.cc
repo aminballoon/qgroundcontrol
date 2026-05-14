@@ -114,6 +114,10 @@ void SimpleMissionItemTest::_testEditorFactsWorker(QGCMAVLinkTypes::VehicleClass
                 }
             }
         }
+        if ((vehicleClass == QGCMAVLink::VehicleClassMultiRotor) && (testCase.command == MAV_CMD_NAV_LOITER_TURNS)) {
+            cExpectedComboBoxInfo.append(FactInfoPair_t(100, QStringLiteral("Direction")));
+            cExpectedTextFieldInfo.append(FactInfoPair_t(101, QStringLiteral("Radius")));
+        }
         MissionItem missionItem(1,           // sequence number
                                 testCase.command, testCase.frame,
                                 10.1234567,  // param 1-7
@@ -132,14 +136,22 @@ void SimpleMissionItemTest::_testEditorFactsWorker(QGCMAVLinkTypes::VehicleClass
             Fact* fact = qobject_cast<Fact*>(simpleMissionItem.textFieldFacts()->get(j));
             TEST_DEBUG(QStringLiteral("textFieldFact %1").arg(fact->name()));
             QCOMPARE(fact->name(), cExpectedTextFieldInfo[j].second);
-            QCOMPARE(fact->rawValue().toDouble(), (cExpectedTextFieldInfo[j].first * 10.0) + 0.1234567);
+            if (cExpectedTextFieldInfo[j].first == 101) {
+                QCOMPARE(fact->rawValue().toDouble(), 30.1234567);
+            } else {
+                QCOMPARE(fact->rawValue().toDouble(), (cExpectedTextFieldInfo[j].first * 10.0) + 0.1234567);
+            }
         }
         QCOMPARE(simpleMissionItem.comboboxFacts()->count(), cExpectedComboBoxInfo.count());
         for (int j = 0; j < simpleMissionItem.comboboxFacts()->count(); j++) {
             Fact* fact = qobject_cast<Fact*>(simpleMissionItem.comboboxFacts()->get(j));
             TEST_DEBUG(QStringLiteral("comboBoxFact %1").arg(fact->name()));
             QCOMPARE(fact->name(), cExpectedComboBoxInfo[j].second);
-            QCOMPARE(fact->rawValue().toDouble(), (cExpectedComboBoxInfo[j].first * 10.0) + 0.1234567);
+            if (cExpectedComboBoxInfo[j].first == 100) {
+                QCOMPARE(fact->rawValue().toInt(), 0);
+            } else {
+                QCOMPARE(fact->rawValue().toDouble(), (cExpectedComboBoxInfo[j].first * 10.0) + 0.1234567);
+            }
         }
         QCOMPARE(simpleMissionItem.nanFacts()->count(), cExpectedNaNFieldInfo.count());
         for (int j = 0; j < simpleMissionItem.nanFacts()->count(); j++) {
@@ -373,6 +385,54 @@ void SimpleMissionItemTest::_testCalcAboveTerrainSaveLoad()
     QCOMPARE(loadedItem.amslAltAboveTerrain()->rawValue().toDouble(), amslAlt);
     QCOMPARE(loadedItem.missionItem().frame(), MAV_FRAME_GLOBAL);
     QCOMPARE(loadedItem.missionItem().param7(), amslAlt);
+}
+
+void SimpleMissionItemTest::_testPX4MultiRotorOrbit()
+{
+    PlanMasterController planController(MAV_AUTOPILOT_PX4, MAV_TYPE_QUADROTOR);
+    MissionItem missionItem(1,
+                            MAV_CMD_NAV_LOITER_TURNS, MAV_FRAME_GLOBAL_RELATIVE_ALT,
+                            3.0,
+                            0.0, -40.0, 0.0,
+                            47.1234567, 8.1234567, 120.0,
+                            true,
+                            false);
+
+    SimpleMissionItem orbitItem(&planController, false /* flyView */, missionItem);
+
+    QCOMPARE(orbitItem.commandName(), QStringLiteral("Orbit"));
+    QVERIFY(orbitItem.isOrbitItem());
+    QVERIFY(orbitItem.showLoiterRadius());
+    QCOMPARE(orbitItem.orbitRadius(), 40.0);
+    QVERIFY(!orbitItem.orbitClockwise());
+
+    orbitItem.setOrbitClockwise(true);
+    QVERIFY(orbitItem.orbitClockwise());
+    QCOMPARE(orbitItem.missionItem().param3(), 40.0);
+
+    orbitItem.setOrbitRadius(65.0);
+    QCOMPARE(orbitItem.orbitRadius(), 65.0);
+    QCOMPARE(orbitItem.missionItem().param3(), 65.0);
+
+    orbitItem.setOrbitClockwise(false);
+    QVERIFY(!orbitItem.orbitClockwise());
+    QCOMPARE(orbitItem.missionItem().param3(), -65.0);
+
+    QJsonArray missionItems;
+    orbitItem.save(missionItems);
+    QCOMPARE(missionItems.count(), 1);
+
+    QString errorString;
+    SimpleMissionItem loadedItem(&planController, false /* flyView */, true /* forLoad */);
+    QVERIFY(loadedItem.load(missionItems[0].toObject(), 1, errorString));
+    QVERIFY(loadedItem.isOrbitItem());
+    QCOMPARE(loadedItem.commandName(), QStringLiteral("Orbit"));
+    QCOMPARE(loadedItem.missionItem().param1(), 3.0);
+    QCOMPARE(loadedItem.coordinate().latitude(), 47.1234567);
+    QCOMPARE(loadedItem.coordinate().longitude(), 8.1234567);
+    QCOMPARE(loadedItem.altitude()->rawValue().toDouble(), 120.0);
+    QCOMPARE(loadedItem.orbitRadius(), 65.0);
+    QVERIFY(!loadedItem.orbitClockwise());
 }
 
 UT_REGISTER_TEST(SimpleMissionItemTest, TestLabel::Unit, TestLabel::MissionManager)

@@ -4,5 +4,27 @@
     "fileType":  "MavCmdInfo",
 
     "mavCmdInfo": [
+        {
+            "id":                   18,
+            "comment":              "MAV_CMD_NAV_LOITER_TURNS",
+            "category":             "Basic",
+            "paramRemove":          "2,4",
+            "param1": {
+                "label":            "Turns",
+                "default":          1,
+                "decimalPlaces":    0,
+                "min":              1,
+                "userMin":          1,
+                "userMax":          100
+            },
+            "param3": {
+                "label":            "Radius",
+                "units":            "m",
+                "default":          50.0,
+                "decimalPlaces":    1,
+                "userMin":          -200,
+                "userMax":          200
+            }
+        }
     ]
 }

@@ -9,7 +9,7 @@
     "groups": [
         {
             "heading": "General",
-            "keywords": ["checklist", "preflight", "multi vehicle", "center map", "log replay", "camera control", "home position", "mission popup"],
+            "keywords": ["checklist", "preflight", "multi vehicle", "center map", "log replay", "camera control", "home position", "mission popup", "wind", "toolbar", "headwind", "tailwind"],
             "controls": [
                 {
                     "setting": "appSettings.useChecklist",
@@ -31,6 +31,9 @@
                 },
                 {
                     "setting": "flyViewSettings.showSimpleCameraControl"
+                },
+                {
+                    "setting": "flyViewSettings.showWindIndicator"
                 },
                 {
                     "setting": "flyViewSettings.updateHomePosition"

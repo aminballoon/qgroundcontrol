@@ -29,6 +29,7 @@ private slots:
     void _testSpeedSection();
     void _testAltitudePropogation();
     void _testCalcAboveTerrainSaveLoad();
+    void _testPX4MultiRotorOrbit();
 
 private:
     void _testEditorFactsWorker(QGCMAVLinkTypes::VehicleClass_t vehicleClass, QGCMAVLinkTypes::VehicleClass_t vtolMode);

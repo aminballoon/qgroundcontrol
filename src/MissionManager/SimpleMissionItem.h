@@ -30,8 +30,11 @@ public:
     Q_PROPERTY(Fact*            amslAltAboveTerrain     READ amslAltAboveTerrain                                CONSTANT)                           ///< Actual AMSL altitude for item if altitudeFrame is AltitudeFrameCalcAboveTerrain or AltitudeFrameTerrain
     Q_PROPERTY(int              command                 READ command                WRITE setCommand            NOTIFY commandChanged)
     Q_PROPERTY(bool             isLoiterItem            READ isLoiterItem                                       NOTIFY isLoiterItemChanged)
+    Q_PROPERTY(bool             isOrbitItem             READ isOrbitItem                                        NOTIFY isOrbitItemChanged)
     Q_PROPERTY(bool             showLoiterRadius        READ showLoiterRadius                                   NOTIFY showLoiterRadiusChanged)
     Q_PROPERTY(double           loiterRadius            READ loiterRadius           WRITE setRadius             NOTIFY loiterRadiusChanged)
+    Q_PROPERTY(bool             orbitClockwise          READ orbitClockwise      WRITE setOrbitClockwise       NOTIFY orbitClockwiseChanged)
+    Q_PROPERTY(double           orbitRadius             READ orbitRadius         WRITE setOrbitRadius          NOTIFY orbitRadiusChanged)
 
     /// Optional sections
     Q_PROPERTY(QObject*         speedSection            READ speedSection                                       NOTIFY speedSectionChanged)
@@ -69,8 +72,11 @@ public:
     Fact*           altitude            (void) { return &_altitudeFact; }
     Fact*           amslAltAboveTerrain (void) { return &_amslAltAboveTerrainFact; }
     bool            isLoiterItem        (void) const;
+    bool            isOrbitItem         (void) const;
     bool            showLoiterRadius    (void) const;
     double          loiterRadius        (void) const;
+    bool            orbitClockwise      (void) const;
+    double          orbitRadius         (void) const;
 
     CameraSection*  cameraSection       (void) { return _cameraSection; }
     SpeedSection*   speedSection        (void) { return _speedSection; }
@@ -94,6 +100,8 @@ public:
     void setAzimuth         (double azimuth);
     void setDistance        (double distance);
     void setRadius          (double loiterRadius);
+    void setOrbitClockwise  (bool clockwise);
+    void setOrbitRadius     (double radius);
 
     virtual bool load(QTextStream &loadStream);
     virtual bool load(const QJsonObject& json, int sequenceNumber, QString& errorString);
@@ -145,8 +153,11 @@ signals:
     void speedSectionChanged        (QObject* cameraSection);
     void altitudeFrameChanged        (void);
     void isLoiterItemChanged        (void);
+    void isOrbitItemChanged         (void);
     void showLoiterRadiusChanged    (void);
     void loiterRadiusChanged        (double loiterRadius);
+    void orbitClockwiseChanged      (bool orbitClockwise);
+    void orbitRadiusChanged         (double orbitRadius);
 
 private slots:
     void _setDirty                              (void);
@@ -165,6 +176,7 @@ private slots:
     void _possibleVehicleYawChanged             (void);
     void _signalIfVTOLTransitionCommand         (void);
     void _possibleRadiusChanged                 (void);
+    void _syncOrbitFacts                        (void);
 
 private:
     void _connectSignals        (void);
@@ -188,6 +200,8 @@ private:
     QGroundControlQmlGlobal::AltitudeFrame    _altitudeFrame = QGroundControlQmlGlobal::AltitudeFrameRelative;
     Fact                                _altitudeFact;
     Fact                                _amslAltAboveTerrainFact;
+    Fact                                _orbitDirectionFact;
+    Fact                                _orbitRadiusFact;
 
     QmlObjectListModel  _textFieldFacts;
     QmlObjectListModel  _textFieldFactsAdvanced;
@@ -210,6 +224,10 @@ private:
     FactMetaData    _param5MetaData;
     FactMetaData    _param6MetaData;
     FactMetaData    _param7MetaData;
+    FactMetaData    _orbitDirectionMetaData;
+    FactMetaData    _orbitRadiusMetaData;
+
+    bool            _syncingOrbitFacts = false;
 
     static constexpr const char* _jsonAltitudeModeKey =           "AltitudeMode";
     static constexpr const char* _jsonAltitudeKey =               "Altitude";

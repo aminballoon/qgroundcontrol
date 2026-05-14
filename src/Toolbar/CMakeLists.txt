@@ -37,6 +37,7 @@ qt_add_qml_module(ToolbarModule
         VehicleGPSIndicator.qml
         VehiclePrecisionLandIndicator.qml
         VehicleMessageList.qml
+        WindIndicator.qml
     NO_PLUGIN
 )
 

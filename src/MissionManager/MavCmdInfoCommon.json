@@ -99,7 +99,7 @@
         {
             "id":                   18,
             "rawName":              "MAV_CMD_NAV_LOITER_TURNS",
-            "friendlyName":         "Loiter (turns)",
+            "friendlyName":         "Orbit",
             "description":          "Travel to a position and Loiter around the specified position for a number of turns.",
             "specifiesCoordinate":  true,
             "isLoiterCommand":      true,

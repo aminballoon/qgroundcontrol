@@ -270,6 +270,14 @@ FlightMap {
             z:              QGroundControl.zOrderVehicles
         }
     }
+
+    WindMapIndicator {
+        vehicle:         _activeVehicle
+        coordinate:      _activeVehicle ? _activeVehicle.coordinate : QtPositioning.coordinate()
+        z:               QGroundControl.zOrderTopMost
+        visible:         !pipMode
+    }
+
     // Add distance sensor view
     MapItemView{
         model: QGroundControl.multiVehicleManager.vehicles

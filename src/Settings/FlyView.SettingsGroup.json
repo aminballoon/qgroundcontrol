@@ -68,6 +68,14 @@
             "label": "Show obstacle distance overlay on map and video."
         },
         {
+            "name": "showWindIndicator",
+            "shortDesc": "Show wind speed, wind direction, and wind assist visuals in Fly view.",
+            "type": "bool",
+            "default": false,
+            "label": "Show wind information in Fly view",
+            "keywords": "wind,toolbar,map,headwind,tailwind"
+        },
+        {
             "name": "maxGoToLocationDistance",
             "shortDesc": "Maximum allowed distance for go-to-location commands from the vehicle.",
             "type": "double",

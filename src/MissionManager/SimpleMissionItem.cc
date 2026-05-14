@@ -27,6 +27,8 @@ SimpleMissionItem::SimpleMissionItem(PlanMasterController* masterController, boo
     , _supportedCommandFact             (0, "Command:",             FactMetaData::valueTypeUint32)
     , _altitudeFact                     (0, "Altitude",             FactMetaData::valueTypeDouble)
     , _amslAltAboveTerrainFact          (0, "Alt above terrain",    FactMetaData::valueTypeDouble)
+    , _orbitDirectionFact               (0, "Direction",            FactMetaData::valueTypeUint32)
+    , _orbitRadiusFact                  (0, "Radius",               FactMetaData::valueTypeDouble)
     , _param1MetaData                   (FactMetaData::valueTypeDouble)
     , _param2MetaData                   (FactMetaData::valueTypeDouble)
     , _param3MetaData                   (FactMetaData::valueTypeDouble)
@@ -34,6 +36,8 @@ SimpleMissionItem::SimpleMissionItem(PlanMasterController* masterController, boo
     , _param5MetaData                   (FactMetaData::valueTypeDouble)
     , _param6MetaData                   (FactMetaData::valueTypeDouble)
     , _param7MetaData                   (FactMetaData::valueTypeDouble)
+    , _orbitDirectionMetaData           (FactMetaData::valueTypeUint32)
+    , _orbitRadiusMetaData              (FactMetaData::valueTypeDouble)
 {
     _editorQml = QStringLiteral("qrc:/qml/QGroundControl/PlanView/SimpleItemEditor.qml");
 
@@ -55,6 +59,8 @@ SimpleMissionItem::SimpleMissionItem(PlanMasterController* masterController, boo
     , _supportedCommandFact     (0,         "Command:",             FactMetaData::valueTypeUint32)
     , _altitudeFact             (0,         "Altitude",             FactMetaData::valueTypeDouble)
     , _amslAltAboveTerrainFact  (0,         "Alt above terrain",    FactMetaData::valueTypeDouble)
+    , _orbitDirectionFact       (0,         "Direction",            FactMetaData::valueTypeUint32)
+    , _orbitRadiusFact          (0,         "Radius",               FactMetaData::valueTypeDouble)
     , _param1MetaData           (FactMetaData::valueTypeDouble)
     , _param2MetaData           (FactMetaData::valueTypeDouble)
     , _param3MetaData           (FactMetaData::valueTypeDouble)
@@ -62,6 +68,8 @@ SimpleMissionItem::SimpleMissionItem(PlanMasterController* masterController, boo
     , _param5MetaData           (FactMetaData::valueTypeDouble)
     , _param6MetaData           (FactMetaData::valueTypeDouble)
     , _param7MetaData           (FactMetaData::valueTypeDouble)
+    , _orbitDirectionMetaData   (FactMetaData::valueTypeUint32)
+    , _orbitRadiusMetaData      (FactMetaData::valueTypeDouble)
 {
     _editorQml = QStringLiteral("qrc:/qml/QGroundControl/PlanView/SimpleItemEditor.qml");
 
@@ -120,6 +128,16 @@ void SimpleMissionItem::_connectSignals(void)
     connect(this,                               &SimpleMissionItem::altitudeFrameChanged,    this, &SimpleMissionItem::_setDirty);
 
     connect(&_altitudeFact,                     &Fact::valueChanged,                        this, &SimpleMissionItem::_altitudeChanged);
+    connect(&_orbitDirectionFact,               &Fact::valueChanged,                        this, [this]() {
+        if (!_syncingOrbitFacts && isOrbitItem()) {
+            setOrbitClockwise(_orbitDirectionFact.rawValue().toInt() == 0);
+        }
+    });
+    connect(&_orbitRadiusFact,                  &Fact::valueChanged,                        this, [this]() {
+        if (!_syncingOrbitFacts && isOrbitItem()) {
+            setOrbitRadius(_orbitRadiusFact.rawValue().toDouble());
+        }
+    });
     connect(this,                               &SimpleMissionItem::altitudeFrameChanged,    this, &SimpleMissionItem::_altitudeFrameChanged);
     connect(this,                               &SimpleMissionItem::terrainAltitudeChanged, this, &SimpleMissionItem::_terrainAltChanged);
 
@@ -164,7 +182,13 @@ void SimpleMissionItem::_connectSignals(void)
     connect(&_missionItem._commandFact,         &Fact::valueChanged,                        this, &SimpleMissionItem::isStandaloneCoordinateChanged);
     connect(&_missionItem._commandFact,         &Fact::valueChanged,                        this, &SimpleMissionItem::isLandCommandChanged);
     connect(&_missionItem._commandFact,         &Fact::valueChanged,                        this, &SimpleMissionItem::isLoiterItemChanged);
+    connect(&_missionItem._commandFact,         &Fact::valueChanged,                        this, &SimpleMissionItem::isOrbitItemChanged);
     connect(&_missionItem._commandFact,         &Fact::valueChanged,                        this, &SimpleMissionItem::showLoiterRadiusChanged);
+    connect(&_missionItem._commandFact,         &Fact::valueChanged,                        this, &SimpleMissionItem::_syncOrbitFacts);
+    connect(&_missionItem._commandFact,         &Fact::valueChanged,                        this, [this]() {
+        emit orbitClockwiseChanged(orbitClockwise());
+        emit orbitRadiusChanged(orbitRadius());
+    });
 
     // Whenever these properties change the ui model changes as well
     connect(this,                               &SimpleMissionItem::commandChanged,         this, &SimpleMissionItem::_rebuildFacts);
@@ -236,6 +260,16 @@ void SimpleMissionItem::_setupMetaData(void)
     _missionItem._frameFact.setMetaData(_frameMetaData);
     _altitudeFact.setMetaData(_altitudeMetaData);
     _amslAltAboveTerrainFact.setMetaData(_altitudeMetaData);
+
+    _orbitDirectionMetaData.setEnumInfo(QStringList{tr("Clockwise"), tr("Counter-clockwise")}, QVariantList{0, 1});
+    _orbitRadiusMetaData.setRawUnits("m");
+    _orbitRadiusMetaData.setDecimalPlaces(2);
+    _orbitRadiusMetaData.setRawMin(0.0);
+    _orbitRadiusMetaData.setRawUserMin(0.0);
+    _orbitRadiusMetaData.setRawUserMax(10000.0);
+
+    _orbitDirectionFact.setMetaData(&_orbitDirectionMetaData);
+    _orbitRadiusFact.setMetaData(&_orbitRadiusMetaData);
 }
 
 SimpleMissionItem::~SimpleMissionItem()
@@ -391,7 +425,7 @@ QString SimpleMissionItem::abbreviation() const
     case MAV_CMD_NAV_LOITER_TURNS:
     case MAV_CMD_NAV_LOITER_UNLIM:
     case MAV_CMD_NAV_LOITER_TO_ALT:
-        return tr("Loiter");
+        return isOrbitItem() ? commandName() : tr("Loiter");
     default:
         return QString();
     }
@@ -445,6 +479,11 @@ void SimpleMissionItem::_rebuildTextFieldFacts(void)
                 const MissionCmdParamInfo* paramInfo = uiInfo->getParamInfo(i, showUI);
 
                 if (showUI && paramInfo && paramInfo->enumStrings().count() == 0 && !paramInfo->nanUnchanged()) {
+                    // For orbit items, param2 (speed) and param3 (Radius) are handled by dedicated facts
+                    if (isOrbitItem() && (i == 2 || i == 3)) {
+                        continue;
+                    }
+
                     Fact*               paramFact =     rgParamFacts[i-1];
                     FactMetaData*       paramMetaData = rgParamMetaData[i-1];
 
@@ -470,6 +509,11 @@ void SimpleMissionItem::_rebuildTextFieldFacts(void)
                         _textFieldFacts.append(paramFact);
                     }
                 }
+            }
+
+            if (isOrbitItem()) {
+                _syncOrbitFacts();
+                _textFieldFacts.append(&_orbitRadiusFact);
             }
         }
 
@@ -557,6 +601,11 @@ bool SimpleMissionItem::isLoiterItem() const
     }
 }
 
+bool SimpleMissionItem::isOrbitItem() const
+{
+    return _controllerVehicle && _controllerVehicle->px4Firmware() && _controllerVehicle->multiRotor() && (command() == MAV_CMD_NAV_LOITER_TURNS);
+}
+
 bool SimpleMissionItem::showLoiterRadius() const
 {
     const MissionCommandUIInfo *uiInfo =
@@ -571,7 +620,7 @@ bool SimpleMissionItem::showLoiterRadius() const
         return false;
     }
 
-    return specifiesCoordinate() && (_controllerVehicle->fixedWing() || _controllerVehicle->vtol()) && isLoiterItem();
+    return specifiesCoordinate() && ((_controllerVehicle->fixedWing() || _controllerVehicle->vtol()) || isOrbitItem()) && isLoiterItem();
 }
 
 double SimpleMissionItem::loiterRadius() const
@@ -581,6 +630,16 @@ double SimpleMissionItem::loiterRadius() const
     } else {
         return qQNaN();
     }
+}
+
+bool SimpleMissionItem::orbitClockwise() const
+{
+    return !isOrbitItem() || (loiterRadius() >= 0.0);
+}
+
+double SimpleMissionItem::orbitRadius() const
+{
+    return isOrbitItem() ? qAbs(loiterRadius()) : qQNaN();
 }
 
 void SimpleMissionItem::_rebuildComboBoxFacts(void)
@@ -635,6 +694,11 @@ void SimpleMissionItem::_rebuildComboBoxFacts(void)
                     _comboboxFacts.append(paramFact);
                 }
             }
+        }
+
+        if (isOrbitItem()) {
+            _syncOrbitFacts();
+            _comboboxFacts.append(&_orbitDirectionFact);
         }
 
         _ignoreDirtyChangeSignals = false;
@@ -892,6 +956,26 @@ void SimpleMissionItem::setRadius(double radius)
     }
 }
 
+void SimpleMissionItem::setOrbitClockwise(bool clockwise)
+{
+    if (!isOrbitItem()) {
+        return;
+    }
+
+    const double radius = orbitRadius();
+    setRadius(clockwise ? radius : -radius);
+}
+
+void SimpleMissionItem::setOrbitRadius(double radius)
+{
+    if (!isOrbitItem()) {
+        return;
+    }
+
+    const double clampedRadius = qAbs(radius);
+    setRadius(orbitClockwise() ? clampedRadius : -clampedRadius);
+}
+
 void SimpleMissionItem::setCoordinate(const QGeoCoordinate& coordinate)
 {
     // We only use lat/lon from coordinate. This keeps param7 and the altitude value which is kept to the side in sync.
@@ -950,7 +1034,16 @@ bool SimpleMissionItem::scanForSections(QmlObjectListModel* visualItems, int sca
         sectionFound |= _cameraSection->scanForSection(visualItems, scanIndex);
     }
     if (_speedSection->available()) {
-        sectionFound |= _speedSection->scanForSection(visualItems, scanIndex);
+        if (isOrbitItem()) {
+            // DO_CHANGE_SPEED is injected BEFORE the orbit item in appendMissionItems.
+            // scanIndex points to the item after the orbit; the orbit is at scanIndex-1,
+            // so the DO_CHANGE_SPEED (if present) is at scanIndex-2.
+            if (scanIndex >= 2) {
+                sectionFound |= _speedSection->scanForSection(visualItems, scanIndex - 2);
+            }
+        } else {
+            sectionFound |= _speedSection->scanForSection(visualItems, scanIndex);
+        }
     }
 
     return sectionFound;
@@ -974,6 +1067,8 @@ void SimpleMissionItem::_updateOptionalSections(void)
     _speedSection = new SpeedSection(_masterController, this);
     if (static_cast<MAV_CMD>(command()) == MAV_CMD_NAV_WAYPOINT) {
         _cameraSection->setAvailable(true);
+        _speedSection->setAvailable(true);
+    } else if (isOrbitItem()) {
         _speedSection->setAvailable(true);
     }
 
@@ -1014,11 +1109,21 @@ void SimpleMissionItem::appendMissionItems(QList<MissionItem*>& items, QObject* 
 {
     int seqNum = sequenceNumber();
 
-    items.append(new MissionItem(missionItem(), missionItemParent));
-    seqNum++;
-
-    _cameraSection->appendSectionItems(items, missionItemParent, seqNum);
-    _speedSection->appendSectionItems(items, missionItemParent, seqNum);
+    if (isOrbitItem()) {
+        // For orbit items, inject DO_CHANGE_SPEED BEFORE the LOITER_TURNS so PX4
+        // applies the speed while orbiting rather than after.
+        _speedSection->appendSectionItems(items, missionItemParent, seqNum);
+        MissionItem* orbitItem = new MissionItem(missionItem(), missionItemParent);
+        orbitItem->setSequenceNumber(seqNum);
+        items.append(orbitItem);
+        seqNum++;
+        _cameraSection->appendSectionItems(items, missionItemParent, seqNum);
+    } else {
+        items.append(new MissionItem(missionItem(), missionItemParent));
+        seqNum++;
+        _cameraSection->appendSectionItems(items, missionItemParent, seqNum);
+        _speedSection->appendSectionItems(items, missionItemParent, seqNum);
+    }
 }
 
 void SimpleMissionItem::applyNewAltitude(double newAltitude)
@@ -1143,5 +1248,22 @@ void SimpleMissionItem::_possibleRadiusChanged(void)
 {
     if (isLoiterItem()) {
         emit loiterRadiusChanged(loiterRadius());
+        if (isOrbitItem()) {
+            _syncOrbitFacts();
+            emit orbitClockwiseChanged(orbitClockwise());
+            emit orbitRadiusChanged(orbitRadius());
+        }
     }
+}
+
+void SimpleMissionItem::_syncOrbitFacts(void)
+{
+    if (!isOrbitItem()) {
+        return;
+    }
+
+    _syncingOrbitFacts = true;
+    _orbitDirectionFact.setRawValue(orbitClockwise() ? 0 : 1);
+    _orbitRadiusFact.setRawValue(orbitRadius());
+    _syncingOrbitFacts = false;
 }
