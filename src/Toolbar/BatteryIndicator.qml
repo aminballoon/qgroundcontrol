@@ -310,37 +310,21 @@ Item {
                 }
             }
 
-            QGCColoredImage {
-                anchors.top:        parent.top
-                anchors.bottom:     parent.bottom
-                width:              height
-                sourceSize.width:   width
-                source:             getBatterySvgSource()
-                fillMode:           Image.PreserveAspectFit
-                color:              getBatteryColor()
-            }
-
-           ColumnLayout {
-                id:                     batteryInfoColumn
-                anchors.top:            parent.top
-                anchors.bottom:         parent.bottom
-                spacing:                0
+            Column {
+                anchors.verticalCenter: parent.verticalCenter
+                spacing:                1
 
                 QGCLabel {
-                    Layout.alignment:       Qt.AlignHCenter
-                    verticalAlignment:      Text.AlignVCenter
-                    color:                  qgcPal.text
-                    text:                   getBatteryPercentageText()
-                    font.pointSize:         _showBoth ? ScreenTools.defaultFontPointSize : ScreenTools.mediumFontPointSize
-                    visible:                _showBoth || _showPercentage
+                    text:               qsTr("Battery:")
+                    color:              Qt.rgba(1, 1, 1, 0.6)
+                    font.pointSize:     ScreenTools.smallFontPointSize
                 }
 
                 QGCLabel {
-                    Layout.alignment:       Qt.AlignHCenter
-                    font.pointSize:         _showBoth ? ScreenTools.defaultFontPointSize : ScreenTools.mediumFontPointSize
-                    color:                  qgcPal.text
-                    text:                   getBatteryVoltageText()
-                    visible:                _showBoth || _showVoltage
+                    text:               getBatteryPercentageText()
+                    color:              getBatteryColor()
+                    font.pointSize:     ScreenTools.defaultFontPointSize
+                    font.bold:          true
                 }
             }
         }

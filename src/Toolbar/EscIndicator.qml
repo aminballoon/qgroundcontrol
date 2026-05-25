@@ -10,7 +10,7 @@ Item {
     anchors.bottom: parent.bottom
     width:          escIndicatorRow.width
 
-    property bool showIndicator: _escs.count > 0
+    property bool showIndicator: _activeVehicle
 
     property var  _activeVehicle:   QGroundControl.multiVehicleManager.activeVehicle
     property var  _escs:            _activeVehicle ? _activeVehicle.escs : null
@@ -21,6 +21,7 @@ Item {
 
     property int    _onlineMotorCount:  _getOnlineMotorCount()
     property bool   _escHealthy:        _getEscHealthStatus()
+    property bool   _hasEscData:        _motorCount > 0
 
     function _getOnlineMotorCount() {
         if (_motorCount === 0) return 0;
@@ -89,8 +90,8 @@ Item {
             }
 
             QGCLabel {
-                color:          getEscStatusColor()
-                text:           _escHealthy ? qsTr("OK") : qsTr("ERR")
+                color:          _hasEscData ? (getEscStatusColor()) : qgcPal.text
+                text:           !_hasEscData ? qsTr("N/A") : (_escHealthy ? qsTr("OK") : qsTr("ERR"))
                 font.pointSize: ScreenTools.smallFontPointSize
             }
         }

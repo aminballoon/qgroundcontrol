@@ -9,9 +9,12 @@ import QGroundControl.FlyView
 
 Item {
     required property var guidedValueSlider
+    property var widgetLayer: null
 
     id:     control
-    width:  parent.width
+    anchors.left:   parent.left
+    anchors.right:  parent.right
+    anchors.top:    parent.top
     height: ScreenTools.toolbarHeight
 
     property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
@@ -26,8 +29,29 @@ Item {
 
     QGCPalette { id: qgcPal }
 
+    // Dark glassmorphic toolbar background — always dark regardless of system theme
+    Rectangle {
+        anchors.fill:   parent
+        color:          Qt.rgba(0.08, 0.08, 0.14, 0.92)
+        border.width:   1
+        border.color:   Qt.rgba(1, 1, 1, 0.12)
+
+        // Subtle bottom border glow line
+        Rectangle {
+            anchors.left:   parent.left
+            anchors.right:  parent.right
+            anchors.bottom: parent.bottom
+            height:         1
+            color:          Qt.rgba(0.42, 0.88, 0.84, 0.25)
+        }
+    }
+
     QGCFlickable {
         anchors.fill:       parent
+        anchors.leftMargin:   ScreenTools.defaultFontPixelWidth
+        anchors.rightMargin:  ScreenTools.defaultFontPixelWidth
+        anchors.topMargin:    2
+        anchors.bottomMargin: 2
         contentWidth:       toolBarLayout.width
         flickableDirection: Flickable.HorizontalFlick
 
@@ -36,43 +60,21 @@ Item {
             height:     parent.height
             spacing:    0
 
+            // ── LEFT PANEL: Logo + Name + Status ──────────────────────
             Item {
                 id:     leftPanel
                 width:  leftPanelLayout.implicitWidth
                 height: parent.height
 
-                // Gradient background behind Q button and main status indicator
-                Rectangle {
-                    id:         gradientBackground
-                    height:     parent.height
-                    width:      mainStatusLayout.width
-                    opacity:    qgcPal.windowTransparent.a
-
-                    gradient: Gradient {
-                        orientation: Gradient.Horizontal
-                        GradientStop { position: 0; color: _mainStatusBGColor }
-                        //GradientStop { position: qgcButton.x + qgcButton.width; color: _mainStatusBGColor }
-                        GradientStop { position: 1; color: qgcPal.window }
-                    }
-                }
-
-                // Standard toolbar background to the right of the gradient
-                Rectangle {
-                    anchors.left:   gradientBackground.right
-                    anchors.right:  parent.right
-                    height:         parent.height
-                    color:          qgcPal.windowTransparent
-                }
-
                 RowLayout {
                     id:         leftPanelLayout
                     height:     parent.height
-                    spacing:    ScreenTools.defaultFontPixelWidth * 2
+                    spacing:    ScreenTools.defaultFontPixelWidth * 1.5
 
+                    // Logo + "QGroundControl" branding
                     RowLayout {
-                        id:         mainStatusLayout
-                        height:     parent.height
-                        spacing:    0
+                        spacing:            ScreenTools.defaultFontPixelWidth * 0.75
+                        Layout.fillHeight:  true
 
                         QGCToolBarButton {
                             id:                 qgcButton
@@ -83,35 +85,56 @@ Item {
                             onClicked:          mainWindow.showToolSelectDialog()
                         }
 
+                        QGCLabel {
+                            text:               qsTr("QGroundControl")
+                            color:              "#ffffff"
+                            font.pointSize:     ScreenTools.defaultFontPointSize
+                            font.bold:          true
+                            anchors.verticalCenter: parent ? parent.verticalCenter : undefined
+                            Layout.alignment:   Qt.AlignVCenter
+                        }
+                    }
+
+                    // Separator
+                    Rectangle {
+                        width:              1
+                        height:             parent.height * 0.55
+                        color:              Qt.rgba(1, 1, 1, 0.15)
+                        Layout.alignment:   Qt.AlignVCenter
+                    }
+
+                    // Connection Status Pill + Flight Mode
+                    RowLayout {
+                        id:         mainStatusLayout
+                        height:     parent.height
+                        spacing:    ScreenTools.defaultFontPixelWidth * 1.5
+                        Layout.alignment: Qt.AlignVCenter
+
                         MainStatusIndicator {
                             id:                 mainStatusIndicator
                             Layout.fillHeight:  true
                         }
-                    }
 
-                    QGCButton {
-                        id:         disconnectButton
-                        text:       qsTr("Disconnect")
-                        onClicked:  _activeVehicle.closeVehicle()
-                        visible:    _activeVehicle && _communicationLost
-                    }
+                        QGCButton {
+                            id:         disconnectButton
+                            text:       qsTr("Disconnect")
+                            onClicked:  _activeVehicle.closeVehicle()
+                            visible:    _activeVehicle && _communicationLost
+                        }
 
-                    FlightModeIndicator {
-                        Layout.fillHeight:  true
-                        visible:            _activeVehicle
+                        FlightModeIndicator {
+                            Layout.fillHeight:  true
+                            visible:            _activeVehicle
+                        }
                     }
                 }
             }
+
+            // ── CENTER PANEL: Guided action confirm ───────────────────
             Item {
                 id:     centerPanel
-                // center panel takes up all remaining space in toolbar between left and right panels
                 width:  Math.max(guidedActionConfirm.visible ? guidedActionConfirm.width : 0, control.width - (leftPanel.width + rightPanel.width))
                 height: parent.height
-
-                Rectangle {
-                    anchors.fill:   parent
-                    color:          qgcPal.windowTransparent
-                }
 
                 GuidedActionConfirm {
                     id:                         guidedActionConfirm
@@ -123,44 +146,97 @@ Item {
                 }
             }
 
+            // ── RIGHT PANEL: All telemetry indicators & config toggle ──
             Item {
                 id:     rightPanel
-                width:  flyViewIndicators.width
+                width:  rightPanelRow.width
                 height: parent.height
 
-                Rectangle {
-                    anchors.fill:   parent
-                    color:          qgcPal.windowTransparent
-                }
+                Row {
+                    id:             rightPanelRow
+                    height:         parent.height
+                    spacing:        ScreenTools.defaultFontPixelWidth * 1.5
 
-                FlyViewToolBarIndicators {
-                    id:     flyViewIndicators
-                    height: parent.height
+                    FlyViewToolBarIndicators {
+                        id:     flyViewIndicators
+                        height: parent.height
+                    }
+
+                    // Separator/Divider
+                    Rectangle {
+                        width:              1
+                        height:             parent.height * 0.55
+                        color:              Qt.rgba(1, 1, 1, 0.15)
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible:            control.widgetLayer !== null
+                    }
+
+                    // Config UI toggle button
+                    Rectangle {
+                        id:                 configToggleBtn
+                        width:              ScreenTools.defaultFontPixelHeight * 2.2
+                        height:             width
+                        radius:             8
+                        color:              checked ? Qt.rgba(107, 226, 214, 0.12) : Qt.rgba(255, 255, 255, 0.05)
+                        border.width:       1
+                        border.color:       checked ? "#6be2d6" : Qt.rgba(255, 255, 255, 0.15)
+                        anchors.verticalCenter: parent.verticalCenter
+
+                        property bool checked: control.widgetLayer ? control.widgetLayer.showRightTelemetryPanel : true
+
+                        QGCColoredImage {
+                            anchors.centerIn: parent
+                            width:            ScreenTools.defaultFontPixelHeight * 1.2
+                            height:           width
+                            source:           "/res/icon_settings.svg"
+                            color:            configToggleBtn.checked ? "#6be2d6" : "#ffffff"
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            onEntered:    configToggleBtn.border.color = "#6be2d6"
+                            onExited:     configToggleBtn.border.color = configToggleBtn.checked ? "#6be2d6" : Qt.rgba(255, 255, 255, 0.15)
+                            onClicked: {
+                                if (control.widgetLayer) {
+                                    control.widgetLayer.showRightTelemetryPanel = !control.widgetLayer.showRightTelemetryPanel
+                                }
+                            }
+                        }
+                    }
+
+                    // Spacer at the end to prevent sticking to the edge
+                    Item {
+                        width:              ScreenTools.defaultFontPixelWidth * 0.5
+                        height:             1
+                    }
                 }
             }
         }
     }
 
-    // The guided action message display is outside of the GuidedActionConfirm control so that it doesn't end up as
-    // part of the Flickable
+    // Guided action message display — outside Flickable
     Rectangle {
         id:                         guidedActionMessageDisplay
         anchors.top:                control.bottom
-        anchors.topMargin:          _margins
+        anchors.topMargin:          ScreenTools.defaultFontPixelWidth
         x:                          control.mapFromItem(guidedActionConfirm.parent, guidedActionConfirm.x, 0).x + (guidedActionConfirm.width - guidedActionMessageDisplay.width) / 2
-        width:                      messageLabel.contentWidth + (_margins * 2)
-        height:                     messageLabel.contentHeight + (_margins * 2)
-        color:                      qgcPal.windowTransparent
+        width:                      messageLabel.contentWidth + (ScreenTools.defaultFontPixelWidth * 2)
+        height:                     messageLabel.contentHeight + (ScreenTools.defaultFontPixelWidth * 2)
+        color:                      Qt.rgba(0.08, 0.08, 0.14, 0.92)
         radius:                     ScreenTools.defaultBorderRadius
+        border.width:               1
+        border.color:               Qt.rgba(1, 1, 1, 0.2)
         visible:                    guidedActionConfirm.visible
 
         QGCLabel {
             id:         messageLabel
-            x:          _margins
-            y:          _margins
+            x:          ScreenTools.defaultFontPixelWidth
+            y:          ScreenTools.defaultFontPixelWidth
             width:      ScreenTools.defaultFontPixelWidth * 30
             wrapMode:   Text.WordWrap
             text:       guidedActionConfirm.message
+            color:      "#ffffff"
         }
 
         PropertyAnimation {

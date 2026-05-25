@@ -8,9 +8,9 @@ Rectangle {
     width:  size
     height: size
     radius: width / 2
-    color:  qgcPal.window
-    border.color:   qgcPal.text
-    border.width:   usedByMultipleVehicleList ? 1 : 0
+    color:  Qt.rgba(0.09, 0.11, 0.16, 0.85)
+    border.color:   Qt.rgba(1, 1, 1, 0.18)
+    border.width:   1
     opacity:        vehicle && usedByMultipleVehicleList && !vehicle.armed ? 0.5 : 1
 
     property real size:                         _defaultSize
@@ -125,6 +125,10 @@ Rectangle {
         anchors.horizontalCenter:   parent.horizontalCenter
         y:                          size * 0.74
         text:                       vehicle && !usedByMultipleVehicleList ? _heading.toFixed(0) + "°" : ""
+        font.bold:                  true
+        font.weight:                Font.Bold
+        font.pointSize:             _fontSize * 0.95
+        color:                      "#ffffff"
         horizontalAlignment:        Text.AlignHCenter
     }
 }

@@ -42,10 +42,22 @@ Rectangle {
         onClicked: mainWindow.showToolSelectDialog()
     }
 
+    QGCToolBarButton {
+        id: flyButton
+        height: parent.height
+        icon.source: "/res/icon_fly.svg"
+        anchors.left: qgcButton.right
+        onClicked: {
+            if (mainWindow.allowViewSwitch()) {
+                mainWindow.showFlyView()
+            }
+        }
+    }
+
     QGCFlickable {
         id: toolsFlickable
         anchors.bottomMargin: 1
-        anchors.left: qgcButton.right
+        anchors.left: flyButton.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.right: parent.right

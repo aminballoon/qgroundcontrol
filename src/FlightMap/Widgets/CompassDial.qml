@@ -8,7 +8,9 @@ import QGroundControl.Controls
 Item {
     id: control
 
+    property real size:         width
     property real offsetRadius: width / 2 - ScreenTools.defaultFontPixelHeight / 2
+    property int  _fontSize:    ScreenTools.defaultFontPointSize * (size / (ScreenTools.defaultFontPixelHeight * 10)) < 8 ? 8 : ScreenTools.defaultFontPointSize * (size / (ScreenTools.defaultFontPixelHeight * 10))
 
     function translateCenterToAngleX(radius, angle) {
         return radius * Math.sin(angle * (Math.PI / 180))
@@ -21,6 +23,10 @@ Item {
     QGCLabel {
         anchors.centerIn:   parent
         text:               "N"
+        color:              "#6be2d6" // Teal for North
+        font.bold:          true
+        font.weight:        Font.Bold
+        font.pointSize:     control._fontSize
         rotation:           _lockNoseUpCompass ? _heading : 0
 
         transform: Translate {
@@ -32,6 +38,10 @@ Item {
     QGCLabel {
         anchors.centerIn:   parent
         text:               "E"
+        color:              "#ffffff"
+        font.bold:          true
+        font.weight:        Font.Bold
+        font.pointSize:     control._fontSize
         rotation:           _lockNoseUpCompass ? _heading : 0
 
         transform: Translate {
@@ -43,6 +53,10 @@ Item {
     QGCLabel {
         anchors.centerIn:   parent
         text:               "S"
+        color:              "#ffffff"
+        font.bold:          true
+        font.weight:        Font.Bold
+        font.pointSize:     control._fontSize
         rotation:           _lockNoseUpCompass ? _heading : 0
 
         transform: Translate {
@@ -54,6 +68,10 @@ Item {
     QGCLabel {
         anchors.centerIn:   parent
         text:               "W"
+        color:              "#ffffff"
+        font.bold:          true
+        font.weight:        Font.Bold
+        font.pointSize:     control._fontSize
         rotation:           _lockNoseUpCompass ? _heading : 0
 
         transform: Translate {
@@ -68,9 +86,9 @@ Item {
 
         Rectangle {
             x:                  size / 2
-            width:              1
-            height:             ScreenTools.defaultFontPixelHeight * 0.5
-            color:              qgcPal.text
+            width:              1.5
+            height:             size * 0.08
+            color:              Qt.rgba(1, 1, 1, 0.6)
             antialiasing:       true
 
             transform: Rotation {
@@ -90,10 +108,10 @@ Item {
             y:                  _margin
             width:              1
             height:             _margin
-            color:              qgcPal.text
+            color:              Qt.rgba(1, 1, 1, 0.35)
             antialiasing:       true
 
-            property real _margin: ScreenTools.defaultFontPixelHeight * 0.25
+            property real _margin: size * 0.04
 
             transform: Rotation {
                 origin.x:   0

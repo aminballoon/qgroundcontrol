@@ -119,9 +119,17 @@ Button {
     }
 
     background: Rectangle {
-        id:     buttonBkRect
-        color:  (control.checked || control.pressed) ?
-                    qgcPal.buttonHighlight :
-                    ((control.enabled && control.hovered) ? qgcPal.toolStripHoverColor : "transparent")
+        id:             buttonBkRect
+        radius:         10
+        color:          (control.checked || control.pressed) ?
+                            Qt.rgba(107, 226, 214, 0.12) :
+                            ((control.enabled && control.hovered) ? Qt.rgba(255, 255, 255, 0.08) : "transparent")
+        border.width:   (control.checked || control.pressed || control.hovered) ? 1 : 0
+        border.color:   (control.checked || control.pressed) ?
+                            "#6be2d6" :
+                            (control.hovered ? Qt.rgba(255, 255, 255, 0.15) : "transparent")
+
+        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on border.color { ColorAnimation { duration: 150 } }
     }
 }

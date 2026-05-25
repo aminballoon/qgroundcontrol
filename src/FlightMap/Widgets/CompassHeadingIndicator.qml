@@ -8,6 +8,7 @@ Canvas {
     anchors.centerIn:   parent
     width:              compassSize * 1/3
     height:             width
+    antialiasing:       true
 
     property real compassSize
     property real heading
@@ -22,23 +23,32 @@ Canvas {
 
     onPaint: {
         var ctx = getContext("2d")
-        ctx.strokeStyle = simplified ? "#EE3424" : _qgcPal.text
-        ctx.fillStyle = "#EE3424"
-        ctx.lineWidth = 1
+        ctx.clearRect(0, 0, width, height)
+        
+        // Right side (neon red)
+        ctx.fillStyle = "#ff3344"
         ctx.beginPath()
         ctx.moveTo(width / 2, 0)
         ctx.lineTo(width, height)
-        ctx.lineTo(width / 2, height * 0.75)
-        ctx.lineTo(width / 2, 0)
+        ctx.lineTo(width / 2, height * 0.78)
+        ctx.closePath()
         ctx.fill()
-        ctx.stroke()
-        ctx.fillStyle = "#C72B27"
+
+        // Left side (darker crimson)
+        ctx.fillStyle = "#cc1122"
         ctx.beginPath()
         ctx.moveTo(width / 2, 0)
         ctx.lineTo(0, height)
-        ctx.lineTo(width / 2, height * 0.75)
-        ctx.lineTo(width / 2, 0)
+        ctx.lineTo(width / 2, height * 0.78)
+        ctx.closePath()
         ctx.fill()
+
+        // Accent line down the middle (thin semi-transparent white)
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)"
+        ctx.lineWidth = 1.5
+        ctx.beginPath()
+        ctx.moveTo(width / 2, 0)
+        ctx.lineTo(width / 2, height * 0.78)
         ctx.stroke()
     }
 

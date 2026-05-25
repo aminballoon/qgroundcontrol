@@ -8,9 +8,7 @@ import QGroundControl.Controls
 //-- RC RSSI Indicator
 Item {
     id:             control
-    width:          rssiRow.width * 1.1
-    anchors.top:    parent.top
-    anchors.bottom: parent.bottom
+    width:          rssiColumn.width
 
     property bool showIndicator: _activeVehicle.supports.radio && _rcRSSIAvailable
 
@@ -34,27 +32,28 @@ Item {
         }
     }
 
-    Row {
-        id:             rssiRow
-        anchors.top:    parent.top
-        anchors.bottom: parent.bottom
-        spacing:        ScreenTools.defaultFontPixelWidth
-
+    Column {
+        id:                     rssiColumn
+        anchors.verticalCenter: parent.verticalCenter
+        spacing:                1
+        
         QGCColoredImage {
-            width:              height
-            anchors.top:        parent.top
-            anchors.bottom:     parent.bottom
+            id:                 rcIcon
+            width:              ScreenTools.defaultFontPixelWidth * 1.8
+            height:             width
             sourceSize.height:  height
             source:             "/qmlimages/RC.svg"
             fillMode:           Image.PreserveAspectFit
             opacity:            _rcRSSIAvailable ? 1 : 0.5
-            color:              qgcPal.buttonText
+            color:              qgcPal.text
+            anchors.horizontalCenter: parent.horizontalCenter
         }
-
-        SignalStrength {
-            anchors.verticalCenter: parent.verticalCenter
-            size:                   parent.height * 0.5
-            percent:                _rcRSSIAvailable ? _activeVehicle.rcRSSI.rawValue : 0
+        
+        QGCLabel {
+            text:               qsTr("RC Link")
+            color:              Qt.rgba(1, 1, 1, 0.6)
+            font.pointSize:     ScreenTools.smallFontPointSize
+            anchors.horizontalCenter: parent.horizontalCenter
         }
     }
 

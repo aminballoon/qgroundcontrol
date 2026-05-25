@@ -19,9 +19,10 @@ Item {
         id:         backgroundRect
         width:      control.width + extraWidth
         height:     control.height
-        color:      qgcPal.window
-        radius:     ScreenTools.defaultFontPixelWidth / 2
-        opacity:    0.75
+        color:      Qt.rgba(0.09, 0.11, 0.16, 0.94)
+        radius:     12
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.16)
     }
 
     ColumnLayout {

@@ -24,36 +24,36 @@ Item {
 
     QGCPalette { id: qgcPal }
 
-    RowLayout {
+    Row {
         id:                     mainLayout
         anchors.verticalCenter: parent.verticalCenter
         spacing:                ScreenTools.defaultFontPixelWidth / 2
 
-        QGCColoredImage {
-            id:                     flightModeIcon
-            Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 3
-            Layout.preferredHeight: ScreenTools.defaultFontPixelHeight
-            fillMode:               Image.PreserveAspectFit
-            mipmap:                 true
-            color:                  qgcPal.text
-            source:                 "/qmlimages/FlightModesComponentIcon.png"
-        }
+        Column {
+            spacing:                1
+            anchors.verticalCenter: parent.verticalCenter
 
-        QGCLabel {
-            id:                 flightModeLabel
-            text:               activeVehicle ? activeVehicle.flightMode : qsTr("N/A", "No data to display")
-            color:              qgcPal.text
-            font.pointSize:     fontPointSize
+            QGCLabel {
+                text:               qsTr("Flight Mode:")
+                color:              Qt.rgba(1, 1, 1, 0.6)
+                font.pointSize:     ScreenTools.smallFontPointSize
+            }
 
+            QGCLabel {
+                id:                 flightModeLabel
+                text:               activeVehicle ? activeVehicle.flightMode : qsTr("N/A")
+                color:              "#ffffff"
+                font.pointSize:     ScreenTools.defaultFontPointSize
+                font.bold:          true
+            }
         }
 
         QGCLabel {
             id:                     vtolModeLabel
-            Layout.alignment:       Qt.AlignVCenter
-            horizontalAlignment:    Text.AlignHCenter
-            text:                   _vtolInFWDFlight ? qsTr("FW\nVTOL") : qsTr("MR\nVTOL")
+            anchors.verticalCenter: parent.verticalCenter
+            text:                   _vtolInFWDFlight ? qsTr("FW") : qsTr("MR")
             font.pointSize:         ScreenTools.smallFontPointSize
-            wrapMode:               Text.WordWrap
+            color:                  qgcPal.text
             visible:                _isVTOL
         }
     }

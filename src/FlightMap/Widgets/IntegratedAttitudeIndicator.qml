@@ -36,7 +36,7 @@ Item {
             var centerY = height / 2
             var ctx = getContext("2d")
             ctx.reset()
-            ctx.strokeStyle = qgcPal.window
+            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.12)
             ctx.lineWidth = attitudeSize
             ctx.beginPath()
             ctx.arc(centerX, centerY, _attitudeRadius, _zeroAttitudeRadians - _maxRadians, _zeroAttitudeRadians + _maxRadians)
@@ -60,7 +60,7 @@ Item {
             var centerY = height / 2
             var ctx = getContext("2d")
             ctx.reset()
-            ctx.strokeStyle = qgcPal.primaryButton
+            ctx.strokeStyle = "#6be2d6" // Teal accent color for roll indicator
             ctx.lineWidth = attitudeSize
             ctx.beginPath()
             ctx.arc(centerX, centerY, _attitudeRadius, startRollRadiansOrdered, endRollRadiansOrdered)
@@ -77,7 +77,7 @@ Item {
             var centerY = height / 2
             var ctx = getContext("2d")
             ctx.reset()
-            ctx.strokeStyle = qgcPal.text
+            ctx.strokeStyle = Qt.rgba(1, 1, 1, 0.6)
             ctx.lineWidth = 2
             ctx.beginPath()
             ctx.moveTo(centerX, 0)

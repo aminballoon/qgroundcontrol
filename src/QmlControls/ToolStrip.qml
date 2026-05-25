@@ -9,7 +9,9 @@ Rectangle {
     color:      qgcPal.windowTransparent
     width:      ScreenTools.defaultFontPixelWidth * 7
     height:     Math.min(maxHeight, toolStripColumn.height + (flickable.anchors.margins * 2))
-    radius:     ScreenTools.defaultFontPixelWidth / 2
+    radius:     ScreenTools.defaultBorderRadius
+    border.width: 1
+    border.color: qgcPal.globalTheme === QGCPalette.Light ? Qt.rgba(0, 0, 0, 0.08) : Qt.rgba(255, 255, 255, 0.15)
 
     property alias  model:              repeater.model
     property real   maxHeight           ///< Maximum height for control, determines whether text is hidden to make control shorter
@@ -53,7 +55,7 @@ Rectangle {
                     anchors.left:       toolStripColumn.left
                     anchors.right:      toolStripColumn.right
                     height:             width
-                    radius:             ScreenTools.defaultFontPixelWidth / 2
+                    radius:             10
                     fontPointSize:      _root.fontSize
                     toolStripAction:    modelData
                     dropPanel:          _dropPanel

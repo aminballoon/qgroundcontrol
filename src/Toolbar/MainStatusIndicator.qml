@@ -8,15 +8,16 @@ RowLayout {
     id:         control
     spacing:    ScreenTools.defaultFontPixelWidth
 
-    property var    _activeVehicle:     QGroundControl.multiVehicleManager.activeVehicle
-    property bool   _armed:             _activeVehicle ? _activeVehicle.armed : false
-    property real   _margins:           ScreenTools.defaultFontPixelWidth
-    property real   _spacing:           ScreenTools.defaultFontPixelWidth / 2
-    property bool   _allowForceArm:      false
+    property var    _activeVehicle:         QGroundControl.multiVehicleManager.activeVehicle
+    property bool   _armed:                 _activeVehicle ? _activeVehicle.armed : false
+    property bool   _communicationLost:     _activeVehicle ? _activeVehicle.vehicleLinkManager.communicationLost : false
+    property real   _margins:               ScreenTools.defaultFontPixelWidth
+    property real   _spacing:               ScreenTools.defaultFontPixelWidth / 2
+    property bool   _allowForceArm:         false
     property bool   _healthAndArmingChecksSupported: _activeVehicle ? _activeVehicle.healthAndArmingCheckReport.supported : false
-    property bool   _vehicleFlies:      _activeVehicle ? _activeVehicle.airShip || _activeVehicle.fixedWing || _activeVehicle.vtol || _activeVehicle.multiRotor : false
-    property var    _vehicleInAir:      _activeVehicle ? _activeVehicle.flying || _activeVehicle.landing : false
-    property bool   _vtolInFWDFlight:   _activeVehicle ? _activeVehicle.vtolInFwdFlight : false
+    property bool   _vehicleFlies:          _activeVehicle ? _activeVehicle.airShip || _activeVehicle.fixedWing || _activeVehicle.vtol || _activeVehicle.multiRotor : false
+    property var    _vehicleInAir:          _activeVehicle ? _activeVehicle.flying || _activeVehicle.landing : false
+    property bool   _vtolInFWDFlight:       _activeVehicle ? _activeVehicle.vtolInFwdFlight : false
 
     function dropMainStatusIndicator() {
         let overallStatusComponent = _activeVehicle ? overallStatusIndicatorPage : overallStatusOfflineIndicatorPage
@@ -25,33 +26,38 @@ RowLayout {
 
     QGCPalette { id: qgcPal }
 
-    QGCLabel {
-        id:                 mainStatusLabel
-        Layout.fillHeight:  true
-        Layout.preferredWidth: contentWidth + (vehicleMessagesIcon.visible ? vehicleMessagesIcon.width + control.spacing : 0)
-        verticalAlignment:  Text.AlignVCenter
-        text:               mainStatusText()
-        color:              qgcPal.text
-        font.pointSize:     ScreenTools.largeFontPointSize
+    // Translucent Pill container for Connection Status matching Mockup UI — always dark style
+    Rectangle {
+        id:                     mainStatusPill
+        Layout.preferredHeight: ScreenTools.defaultFontPixelHeight * 1.8
+        Layout.preferredWidth:  pillRow.width + ScreenTools.defaultFontPixelWidth * 3
+        Layout.alignment:       Qt.AlignVCenter
+        radius:                 8
+
+        // Always dark teal pill — visible on both dark and light toolbar
+        color:          _activeVehicle ? (_communicationLost ? Qt.rgba(0.95, 0.16, 0.21, 0.20) : Qt.rgba(0.33, 0.64, 0.61, 0.18)) : Qt.rgba(1, 1, 1, 0.06)
+        border.width:   1
+        border.color:   _activeVehicle ? (_communicationLost ? "#f32836" : "#6be2d6") : Qt.rgba(1, 1, 1, 0.25)
+
+        Behavior on color { ColorAnimation { duration: 150 } }
+        Behavior on border.color { ColorAnimation { duration: 150 } }
 
         property string _commLostText:      qsTr("Comms Lost")
-        property string _readyToFlyText:    qsTr("Ready")
+        property string _readyToFlyText:    qsTr("Connected") // Matches Mockup's "Connected" text
         property string _notReadyToFlyText: qsTr("Not Ready")
-        property string _disconnectedText:  qsTr("Disconnected - Click to manually connect")
+        property string _disconnectedText:  qsTr("Disconnected")
         property string _armedText:         qsTr("Armed")
         property string _flyingText:        qsTr("Flying")
         property string _landingText:       qsTr("Landing")
 
         function mainStatusText() {
-            var statusText
             if (_activeVehicle) {
                 if (_communicationLost) {
                     _mainStatusBGColor = "red"
-                    return mainStatusLabel._commLostText
+                    return _commLostText
                 }
                 if (_activeVehicle.armed) {
                     _mainStatusBGColor = "green"
-
                     if (_healthAndArmingChecksSupported) {
                         if (_activeVehicle.healthAndArmingCheckReport.canArm) {
                             if (_activeVehicle.healthAndArmingCheckReport.hasWarningsOrErrors) {
@@ -61,13 +67,12 @@ RowLayout {
                             _mainStatusBGColor = "red"
                         }
                     }
-
                     if (_activeVehicle.flying) {
-                        return mainStatusLabel._flyingText
+                        return _flyingText
                     } else if (_activeVehicle.landing) {
-                        return mainStatusLabel._landingText
+                        return _landingText
                     } else {
-                        return mainStatusLabel._armedText
+                        return _armedText
                     }
                 } else {
                     if (_healthAndArmingChecksSupported) {
@@ -77,58 +82,94 @@ RowLayout {
                             } else {
                                 _mainStatusBGColor = "green"
                             }
-                            return mainStatusLabel._readyToFlyText
+                            return _readyToFlyText
                         } else {
                             _mainStatusBGColor = "red"
-                            return mainStatusLabel._notReadyToFlyText
+                            return _notReadyToFlyText
                         }
                     } else if (_activeVehicle.readyToFlyAvailable) {
                         if (_activeVehicle.readyToFly) {
                             _mainStatusBGColor = "green"
-                            return mainStatusLabel._readyToFlyText
+                            return _readyToFlyText
                         } else {
                             _mainStatusBGColor = "yellow"
-                            return mainStatusLabel._notReadyToFlyText
+                            return _notReadyToFlyText
                         }
                     } else {
-                        // Best we can do is determine readiness based on AutoPilot component setup and health indicators from SYS_STATUS
                         if (_activeVehicle.allSensorsHealthy && _activeVehicle.autopilotPlugin.setupComplete) {
                             _mainStatusBGColor = "green"
-                            return mainStatusLabel._readyToFlyText
+                            return _readyToFlyText
                         } else {
                             _mainStatusBGColor = "yellow"
-                            return mainStatusLabel._notReadyToFlyText
+                            return _notReadyToFlyText
                         }
                     }
                 }
             } else {
                 _mainStatusBGColor = qgcPal.brandingPurple
-                return mainStatusLabel._disconnectedText
+                return _disconnectedText
             }
         }
 
-        QGCColoredImage {
-            id:                     vehicleMessagesIcon
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.right:          parent.right
-            width:                  ScreenTools.defaultFontPixelWidth * 2
-            height:                 width
-            source:                 "/res/VehicleMessages.png"
-            color:                  getIconColor()
-            sourceSize.width:       width
-            fillMode:               Image.PreserveAspectFit
-            visible:                _activeVehicle && _activeVehicle.messageCount > 0
+        Row {
+            id:                     pillRow
+            anchors.centerIn:       parent
+            spacing:                ScreenTools.defaultFontPixelWidth * 1.2
+            
+            // Glowing Indicator Dot
+            Rectangle {
+                id:                     statusDot
+                width:                  8
+                height:                 8
+                radius:                 4
+                anchors.verticalCenter: parent.verticalCenter
+                color:                  _activeVehicle ? (_communicationLost ? "#f32836" : (_armed ? "#f32836" : "#6be2d6")) : "#808080"
 
-            function getIconColor() {
-                let iconColor = qgcPal.text
-                if (_activeVehicle) {
-                    if (_activeVehicle.messageTypeWarning) {
-                        iconColor = qgcPal.colorOrange
-                    } else if (_activeVehicle.messageTypeError) {
-                        iconColor = qgcPal.colorRed
-                    }
+                Behavior on color { ColorAnimation { duration: 150 } }
+
+                // Outer Glow ring
+                Rectangle {
+                    anchors.centerIn:   parent
+                    width:              14
+                    height:             14
+                    radius:             7
+                    color:              parent.color
+                    opacity:            0.35
+                    z:                  -1
                 }
-                return iconColor
+            }
+
+            QGCLabel {
+                id:                     statusLabel
+                text:                   mainStatusPill.mainStatusText()
+                color:                  _activeVehicle ? (_communicationLost ? "#f32836" : "#ffffff") : "rgba(255,255,255,0.7)"
+                font.pointSize:         ScreenTools.defaultFontPointSize
+                font.bold:              true
+                anchors.verticalCenter: parent.verticalCenter
+            }
+
+            QGCColoredImage {
+                id:                     vehicleMessagesIcon
+                anchors.verticalCenter: parent.verticalCenter
+                width:                  ScreenTools.defaultFontPixelWidth * 1.6
+                height:                 width
+                source:                 "/res/VehicleMessages.png"
+                color:                  getIconColor()
+                sourceSize.width:       width
+                fillMode:               Image.PreserveAspectFit
+                visible:                _activeVehicle && _activeVehicle.messageCount > 0
+
+                function getIconColor() {
+                    let iconColor = qgcPal.text
+                    if (_activeVehicle) {
+                        if (_activeVehicle.messageTypeWarning) {
+                            iconColor = qgcPal.colorOrange
+                        } else if (_activeVehicle.messageTypeError) {
+                            iconColor = qgcPal.colorRed
+                        }
+                    }
+                    return iconColor
+                }
             }
         }
 

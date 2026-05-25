@@ -8,9 +8,7 @@ import QGroundControl.Controls
 //-- Telemetry RSSI
 Item {
     id:             control
-    anchors.top:    parent.top
-    anchors.bottom: parent.bottom
-    width:          telemIcon.width * 1.1
+    width:          telemColumn.width
 
     property bool showIndicator: _hasTelemetry
 
@@ -18,15 +16,28 @@ Item {
     property var  _radioStatus:     _activeVehicle.radioStatus
     property bool _hasTelemetry:    _radioStatus.lrssi.rawValue !== 0
 
-    QGCColoredImage {
-        id:                 telemIcon
-        anchors.top:        parent.top
-        anchors.bottom:     parent.bottom
-        width:              height
-        sourceSize.height:  height
-        source:             "/qmlimages/TelemRSSI.svg"
-        fillMode:           Image.PreserveAspectFit
-        color:              qgcPal.buttonText
+    Column {
+        id:                     telemColumn
+        anchors.verticalCenter: parent.verticalCenter
+        spacing:                1
+        
+        QGCColoredImage {
+            id:                 telemIcon
+            width:              ScreenTools.defaultFontPixelWidth * 1.8
+            height:             width
+            sourceSize.height:  height
+            source:             "/qmlimages/TelemRSSI.svg"
+            fillMode:           Image.PreserveAspectFit
+            color:              qgcPal.text
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
+        
+        QGCLabel {
+            text:               qsTr("Datalink")
+            color:              Qt.rgba(1, 1, 1, 0.6)
+            font.pointSize:     ScreenTools.smallFontPointSize
+            anchors.horizontalCenter: parent.horizontalCenter
+        }
     }
 
     MouseArea {

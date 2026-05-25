@@ -15,7 +15,7 @@ ColumnLayout {
     property var    _rgFontSizeTightHeights:    [ _tightDefaultFontHeight * _rgFontSizeRatios[0] + 2, _tightDefaultFontHeight * _rgFontSizeRatios[1] + 2, _tightDefaultFontHeight * _rgFontSizeRatios[2] + 2, _tightDefaultFontHeight * _rgFontSizeRatios[3] + 2 ]
     property real   _tightHeight:               _rgFontSizeTightHeights[instrumentValueData.factValueGrid.fontSize]
     property bool   _iconVisible:               instrumentValueData.rangeType === InstrumentValueData.IconSelectRange || instrumentValueData.icon
-    property var    _color:                     instrumentValueData.isValidColor(instrumentValueData.currentColor) ? instrumentValueData.currentColor : qgcPal.text
+    property var    _color:                     instrumentValueData.isValidColor(instrumentValueData.currentColor) ? instrumentValueData.currentColor : Qt.rgba(1, 1, 1, 0.65)
 
     QGCPalette { id: qgcPal; colorGroupEnabled: enabled }
 
@@ -33,6 +33,8 @@ ColumnLayout {
         visible:                    _iconVisible
 
         readonly property string iconPrefix: "/InstrumentValueIcons/"
+
+        readonly property string iconPrefixRaw: "/InstrumentValueIcons/"
 
         function updateIcon() {
             if (instrumentValueData.rangeType === InstrumentValueData.IconSelectRange) {
@@ -57,6 +59,7 @@ ColumnLayout {
         Layout.alignment:   Qt.AlignVCenter
         height:             _tightHeight
         font.pointSize:     ScreenTools.smallFontPointSize
+        font.weight:        Font.Medium
         text:               instrumentValueData.text
         color:              _color
         opacity:            instrumentValueData.currentOpacity

@@ -9,6 +9,13 @@ import QGroundControl.FlightMap
 ColumnLayout {
     spacing: ScreenTools.defaultFontPixelHeight / 2
 
+    // MockUI right-side telemetry panels (Telemetry, Battery, Signal, GPS)
+    FlyViewTelemetryPanel {
+        Layout.alignment:   Qt.AlignRight
+        Layout.topMargin:   ScreenTools.defaultFontPixelHeight * 0.5
+        Layout.rightMargin: ScreenTools.defaultFontPixelWidth * 0.75
+    }
+
     TerrainProgress {
         Layout.fillWidth: true
     }

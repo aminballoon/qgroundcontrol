@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <style>
+      .fly-icon { fill: none; stroke: #00D4FF; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <!-- Stylized aircraft/paper plane -->
+  <g class="fly-icon">
+    <!-- Main fuselage/body -->
+    <path d="M 16 32 L 48 16 L 48 32 L 16 48 Z"/>
+
+    <!-- Cockpit window -->
+    <circle cx="22" cy="32" r="2.5" fill="#00D4FF"/>
+
+    <!-- Wing accent line -->
+    <path d="M 48 24 L 56 20"/>
+
+    <!-- Tail fin accent -->
+    <path d="M 16 40 L 14 48"/>
+    <path d="M 16 24 L 14 16"/>
+  </g>
+
+  <!-- Speed lines to indicate motion -->
+  <g stroke="#00D4FF" stroke-width="1.8" stroke-linecap="round" opacity="0.6">
+    <line x1="8" y1="28" x2="12" y2="28"/>
+    <line x1="6" y1="36" x2="11" y2="36"/>
+  </g>
+</svg>

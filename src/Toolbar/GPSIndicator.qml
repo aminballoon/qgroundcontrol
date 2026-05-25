@@ -17,56 +17,22 @@ Item {
 
     QGCPalette { id: qgcPal }
 
-    Row {
-        id:             gpsIndicatorRow
-        anchors.top:    parent.top
-        anchors.bottom: parent.bottom
-        spacing:        ScreenTools.defaultFontPixelWidth / 2
+    Column {
+        id:                     gpsIndicatorRow
+        anchors.verticalCenter: parent.verticalCenter
+        spacing:                1
 
-        Row {
-            anchors.top:    parent.top
-            anchors.bottom: parent.bottom
-            spacing:        -ScreenTools.defaultFontPixelWidth / 2
-
-            QGCLabel {
-                id:                     gpsLabel
-                rotation:               90
-                text:                   qsTr("RTK")
-                color:                  qgcPal.text
-                anchors.verticalCenter: parent.verticalCenter
-                visible:                _rtkConnected
-            }
-
-            QGCColoredImage {
-                id:                 gpsIcon
-                width:              height
-                anchors.top:        parent.top
-                anchors.bottom:     parent.bottom
-                source:             "/qmlimages/Gps.svg"
-                fillMode:           Image.PreserveAspectFit
-                sourceSize.height:  height
-                opacity:            (_activeVehicle && _activeVehicle.gps.count.value >= 0) ? 1 : 0.5
-                color:              qgcPal.text
-            }
+        QGCLabel {
+            text:               _rtkConnected ? qsTr("RTK GPS:") : qsTr("GPS:")
+            color:              Qt.rgba(1, 1, 1, 0.6)
+            font.pointSize:     ScreenTools.smallFontPointSize
         }
 
-        Column {
-            id:                     gpsValuesColumn
-            anchors.verticalCenter: parent.verticalCenter
-            visible:                _activeVehicle && !isNaN(_activeVehicle.gps.hdop.value)
-            spacing:                0
-
-            QGCLabel {
-                anchors.horizontalCenter:   hdopValue.horizontalCenter
-                color:              qgcPal.text
-                text:               _activeVehicle ? _activeVehicle.gps.count.valueString : ""
-            }
-
-            QGCLabel {
-                id:     hdopValue
-                color:  qgcPal.text
-                text:   _activeVehicle ? _activeVehicle.gps.hdop.value.toFixed(1) : ""
-            }
+        QGCLabel {
+            text:               _activeVehicle ? (_activeVehicle.gps.count.value >= 0 ? _activeVehicle.gps.count.valueString + " " + qsTr("Sats") : qsTr("No GPS")) : qsTr("No GPS")
+            color:              "#ffffff"
+            font.pointSize:     ScreenTools.defaultFontPointSize
+            font.bold:          true
         }
     }
 

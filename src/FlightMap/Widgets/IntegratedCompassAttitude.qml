@@ -14,8 +14,10 @@ Item {
     property alias attitudeSpacing:             rollIndicator.attitudeSpacing
     property real extraInset:                   attitudeSize + attitudeSpacing
     property real extraValuesWidth:             compassRadius
-    property real defaultCompassRadius:         (mainWindow.width * 0.15) / 2
-    property real maxCompassRadius:             ScreenTools.defaultFontPixelHeight * 7 / 2
+    
+    // Scale dynamically based on window width and height
+    property real defaultCompassRadius:         Math.min(mainWindow.width * 0.15, mainWindow.height * 0.18) / 2
+    property real maxCompassRadius:             Math.min(ScreenTools.defaultFontPixelHeight * 7.5 / 2, mainWindow.height * 0.11)
     property real compassRadius:                Math.min(defaultCompassRadius, maxCompassRadius)
     property real compassBorder:                ScreenTools.defaultFontPixelHeight / 2
     property var  vehicle:                      globals.activeVehicle
@@ -46,7 +48,7 @@ Item {
         width:  compassRadius * 2
         height: width
         radius: width / 2
-        color:  qgcPal.window
+        color:  "transparent" // Inner compass dial already draws the background
 
         QGCCompassWidget {
             size:                       parent.width - compassBorder

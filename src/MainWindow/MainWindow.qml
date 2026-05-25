@@ -399,10 +399,23 @@ ApplicationWindow {
             RowLayout {
                 id:                 toolDrawerToolbarLayout
                 anchors.leftMargin: ScreenTools.defaultFontPixelWidth
+                anchors.rightMargin: ScreenTools.defaultFontPixelWidth
                 anchors.left:       parent.left
+                anchors.right:      parent.right
                 anchors.top:        parent.top
                 anchors.bottom:     parent.bottom
                 spacing:            ScreenTools.defaultFontPixelWidth
+
+                QGCToolBarButton {
+                    id:             flyButton
+                    height:         parent.height
+                    icon.source:    "/res/icon_fly.svg"
+                    onClicked: {
+                        if (mainWindow.allowViewSwitch()) {
+                            mainWindow.showFlyView()
+                        }
+                    }
+                }
 
                 QGCToolBarButton {
                     id: qgcButton
@@ -418,6 +431,8 @@ ApplicationWindow {
                     text:           toolDrawer.toolTitle
                     font.pointSize: ScreenTools.largeFontPointSize
                 }
+
+                Item { Layout.fillWidth: true }
             }
         }
 

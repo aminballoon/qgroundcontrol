@@ -44,15 +44,19 @@ Button {
         radius: backRadius
         implicitWidth: ScreenTools.implicitButtonWidth
         implicitHeight: ScreenTools.implicitButtonHeight
-        border.width: showBorder ? 1 : 0
-        border.color: qgcPal.buttonBorder
+        border.width: 1
+        border.color: control.enabled && control.hovered ? qgcPal.buttonHighlight : qgcPal.buttonBorder
         color: primary ? qgcPal.primaryButton : qgcPal.button
+
+        Behavior on border.color { ColorAnimation { duration: 150 } }
 
         Rectangle {
             anchors.fill: parent
             color: qgcPal.buttonHighlight
-            opacity: _showHighlight ? 1 : control.enabled && control.hovered ? .2 : 0
+            opacity: _showHighlight ? 1 : control.enabled && control.hovered ? .25 : 0
             radius: parent.radius
+
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
     }
 

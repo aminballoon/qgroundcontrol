@@ -174,6 +174,8 @@ Item {
     FlyViewToolBar {
         id:                 toolbar
         guidedValueSlider:  _guidedValueSlider
+        widgetLayer:        _widgetLayer
         visible:            !QGroundControl.videoManager.fullScreen
+        z:                  QGroundControl.zOrderWidgets
     }
 }

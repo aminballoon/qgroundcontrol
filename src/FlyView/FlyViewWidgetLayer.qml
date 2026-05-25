@@ -35,6 +35,7 @@ Item {
     property real   _layoutMargin:          ScreenTools.defaultFontPixelWidth * 0.75
     property bool   _layoutSpacing:         ScreenTools.defaultFontPixelWidth
     property bool   _showSingleVehicleUI:   true
+    property bool   showRightTelemetryPanel: true
 
     QGCToolInsets {
         id:                     _totalToolInsets
@@ -44,7 +45,7 @@ Item {
         rightEdgeTopInset:      topRightPanel.rightEdgeTopInset
         rightEdgeCenterInset:   topRightPanel.rightEdgeCenterInset
         rightEdgeBottomInset:   bottomRightRowLayout.rightEdgeBottomInset
-        topEdgeLeftInset:       toolStrip.topEdgeLeftInset
+        topEdgeLeftInset:       logoContainer.height + toolStrip.topEdgeLeftInset + _toolsMargin
         topEdgeCenterInset:     mapScale.topEdgeCenterInset
         topEdgeRightInset:      topRightPanel.topEdgeRightInset
         bottomEdgeLeftInset:    virtualJoystickMultiTouch.visible ? virtualJoystickMultiTouch.bottomEdgeLeftInset : parentToolInsets.bottomEdgeLeftInset
@@ -68,11 +69,11 @@ Item {
         anchors.top:        parent.top
         anchors.right:      parent.right
         spacing:            _layoutSpacing
-        visible:           !topRightPanel.visible
+        visible:            showRightTelemetryPanel && !topRightPanel.visible
 
-        property real topEdgeRightInset:    childrenRect.height + _layoutMargin
-        property real rightEdgeTopInset:    width + _layoutMargin
-        property real rightEdgeCenterInset: rightEdgeTopInset
+        property real topEdgeRightInset:    topRightColumnLayout.childrenRect.height + _layoutMargin
+        property real rightEdgeTopInset:    topRightColumnLayout.width + _layoutMargin
+        property real rightEdgeCenterInset: topRightColumnLayout.rightEdgeTopInset
     }
 
     FlyViewBottomRightRowLayout {
@@ -138,12 +139,34 @@ Item {
         }
     }
 
+    // QGroundControl Modern Logo
+    Rectangle {
+        id:                     logoContainer
+        anchors.left:           parent.left
+        anchors.top:            parent.top
+        anchors.margins:        _toolsMargin
+        width:                  ScreenTools.defaultFontPixelWidth * 7
+        height:                 ScreenTools.defaultFontPixelWidth * 7
+        color:                  "transparent"
+        z:                      QGroundControl.zOrderWidgets
+        visible:                !QGroundControl.videoManager.fullScreen
+
+        Image {
+            anchors.fill:       parent
+            anchors.margins:    ScreenTools.defaultFontPixelWidth * 0.5
+            source:             "qrc:/res/QGCLogoModern.svg"
+            fillMode:           Image.PreserveAspectFit
+            opacity:            0.9
+        }
+    }
+
     FlyViewToolStrip {
         id:                     toolStrip
         anchors.left:           parent.left
-        anchors.top:            parent.top
+        anchors.top:            logoContainer.bottom
+        anchors.topMargin:      _toolsMargin * 0.5
         z:                      QGroundControl.zOrderWidgets
-        maxHeight:              parent.height - y - parentToolInsets.bottomEdgeLeftInset - _toolsMargin
+        maxHeight:              Math.max(ScreenTools.defaultFontPixelHeight * 10, parent.height - y - parentToolInsets.bottomEdgeLeftInset - _toolsMargin)
         visible:                !QGroundControl.videoManager.fullScreen
 
         onDisplayPreFlightChecklist: {
